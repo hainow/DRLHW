@@ -13,20 +13,7 @@ from gym.envs.registration import register
 from six import StringIO, b
 from gym import utils  # for coloring
 
-# def convert_tuple_to_state_number(tuple):
-#     """ tuple = (a, b, c, d)"""
-#     return tuple[0] * 6**3 + tuple[1] * 6**2 + tuple[2] * 6 + tuple[3]
-
-# def convert_tuple_to_state(a, b, c, d):
-#     """ tuple = (a, b, c, d)"""
-#     return a * 6**3 + b * 6**2 + c * 6 + d
-#
-# def array_to_state(x):
-#     """ x = (a, b, c, d) as numpy.ndarray"""
-#     state = x[0] * 6**3 + x[1] * 6**2 + x[2] * 6 + x[3]
-#     return (state, )  # tuple
-
-def categorical_sample(prob_n):
+def categorical_sample(prob_n):  # taken from discrete.py
     """
     Sample from categorical distribution
     Each row specifies class probabilities
@@ -78,7 +65,7 @@ class QueueEnv(Env):
             x = dict()
 
             for tuple in l:
-                x[tuple] = pa[a] * pb[b] * pc[c]
+                x[tuple] = pa[tuple[0]] * pb[tuple[1]] * pc[tuple[2]]
 
             return x
 
@@ -125,7 +112,7 @@ class QueueEnv(Env):
                                 for key in increments:
                                     next_state = upper_bound(interim_state + np.array((0,) + key))
                                     prob = increments[key]
-                                    li.append( (prob,) + tuple(next_state) + (reward, False) )
+                                    li.append( (prob,) + (tuple(next_state), ) + (reward, False) )
 
                             else:  # action == 3: stay and serve current queue
                                 interim_state = np.asarray((a, b, c, d))  # a unchanged
@@ -142,93 +129,13 @@ class QueueEnv(Env):
                                 # update env.P[s][a]
                                 for key in increments:
                                     next_state = upper_bound(interim_state + np.array((0,) + key))
-
                                     prob = increments[key]
-                                    li.append( (prob,) + tuple(next_state) + (reward, False) )
+                                    li.append( (prob,) + (tuple(next_state), ) + (reward, False) )
 
         # TODO: validate whether this is needed
         self._seed()
         self._reset()
 
-    # def __init__(self, p1, p2, p3):
-    #
-    #     def build_increment(p1, p2, p3):
-    #         """
-    #         For each action, we have 8 possible next states, with increment of items
-    #         (0, 0, 0), (0, 0, 1), ... , (1, 1, 1) with probablility (1-p1)(1-p2)(1-p3), (1-p1)(1-p2)p3, ...., p1*p2*p3
-    #         :return: a dictionary mapping the 2 lists above
-    #         """
-    #         l = [(a, b, c) for a in range(2) for b in range(2) for c in range(2)]
-    #         pa = {0: (1 - p1), 1: p1}
-    #         pb = {0: (1 - p2), 1: p2}
-    #         pc = {0: (1 - p3), 1: p3}
-    #         x = dict()
-    #
-    #         for tuple in l:
-    #             x[tuple] = pa[a] * pb[b] * pc[c]
-    #
-    #         return x
-    #
-    #     self.action_space = spaces.Discrete(4)
-    #     self.observation_space = spaces.MultiDiscrete([(1, 3), (0, 5), (0, 5), (0, 5)])
-    #     self.nS = 3 * 6 * 6 * 6
-    #     self.nA = 4
-    #     self.last_action = None  # for rendering
-    #     isd = np.array([1] + [0] * (self.nS-1)) #TODO: ask about whether we need to sample how many items pre-existed?
-    #
-    #
-    #
-    #     # self.P = dict()
-    #     self.P = {s: {a: [] for a in range(self.nA)} for s in range(self.nS)}
-    #     increments = build_increment(p1, p2, p3)
-    #
-    #     for a in range(3):
-    #         for b in range(6):
-    #             for c in range(6):
-    #                 for d in range(6):
-    #                     current_state = convert_tuple_to_state(a, b, c, d)
-    #                     for action in range(4):
-    #                         li = self.P[current_state][action]  # currently empty
-    #                         interim_state = np.zeros((4))
-    #
-    #                         if action <3:
-    #                             interim_state = np.asarray((action, b, c, d))
-    #                             # serve now ...
-    #                             interim_state[action + 1] -= 1
-    #                             # update env.P[s][a]
-    #                             for key in increments:
-    #                                 reward = 0
-    #                                 if interim_state[action] < 0:
-    #                                     interim_state[action] = 0
-    #                                 else:
-    #                                     reward = 1
-    #
-    #                                 next_state = interim_state + np.array((0,) + key)
-    #                                 prob = increments[key]
-    #
-    #                                 li.append( (prob,) + array_to_state(next_state) + (reward, False) )
-    #
-    #                         else:  # action == 3: stay and serve current queue
-    #                             interim_state = np.asarray((a, b, c, d))  # a unchanged
-    #                             # serve now ...
-    #                             interim_state[a] -= 1
-    #                             # update env.P[s][a]
-    #                             for key in increments:
-    #                                 reward = 0
-    #                                 if interim_state[a] < 0:
-    #                                     interim_state[a] = 0
-    #                                 else:
-    #                                     reward = 1
-    #
-    #                                 next_state = interim_state + np.array((0,) + key)
-    #                                 prob = increments[key]
-    #
-    #                                 li.append( (prob,) + array_to_state(next_state) + (reward, False) )
-    #
-    #     # TODO: validate whether this is needed
-    #     self._seed()
-    #     self._reset()
-    #
 
     def _reset(self):
         """Reset the environment.
@@ -247,8 +154,6 @@ class QueueEnv(Env):
         c = random.randint(0, 5)
         d = random.randint(0, 5)
         self.s = (0, b, c, d)
-
-        # self.s = b * 6**2 + c * 6 + d
 
         return self.s
 
@@ -271,12 +176,12 @@ class QueueEnv(Env):
         """
         transitions = self.P[self.s][action]
         i = categorical_sample([t[0] for t in transitions])
-        p, s1, s2, s3, s4, r, d = transitions[i]
+        p, next_state, r, d = transitions[i]
         debug = 'none'
 
         # update object attributes
         self.last_action = action
-        self.s = (s1, s2, s3, s4)
+        self.s = next_state
 
         return (self.s, r, d, debug)
 
@@ -296,7 +201,6 @@ class QueueEnv(Env):
             s[1] = utils.colorize(s[1], "red", highlight=True)
 
         (a, b, c, d) = s
-
         # now output to console
         outfile = StringIO() if mode == 'ansi' else sys.stdout
 
@@ -374,4 +278,3 @@ register(
     kwargs={'p1': .1,
             'p2': .1,
             'p3': .1})
-

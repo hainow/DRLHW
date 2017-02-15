@@ -242,7 +242,6 @@ def policy_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
        improvement iterations, and number of value iterations.
     """
     policy = np.zeros(env.nS, dtype='int')
-    # value_func = np.zeros(env.nS)
 
     impru_count = 1
     eval_count = 1
@@ -291,33 +290,33 @@ def value_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
     np.ndarray, iteration
       The value function and the number of iterations it took to converge.
     """
-    V = np.zeros(env.nS)
+    value_func = np.zeros(env.nS)
     optimal_policy = np.zeros(env.nS)
     count = 1
     while True:
         delta = 0.
         # V_new = np.zeros(env.nS)
         for s in range(env.nS):
-            v_new = V[s]
+            v_new = value_func[s]
             max_return = -1.
             for a in env.P[s]:
                 expected_value = 0.
                 for p, s_next, r, done in env.P[s][a]:
-                    expected_value += p * (r + gamma * V[s_next])
+                    expected_value += p * (r + gamma * value_func[s_next])
                 if max_return < expected_value:
                     max_return = expected_value
                     optimal_policy[s] = a
 
             # update best value
-            V[s] = max_return
-            delta = max(delta, np.abs(V[s] - v_new))
+            value_func[s] = max_return
+            delta = max(delta, np.abs(value_func[s] - v_new))
 
         if (delta < tol) or (count > max_iterations):
             break
-        V_new = V
+        # V_new = value_func
         count += 1
 
-    return optimal_policy, V, count
+    return optimal_policy, value_func, count
 
 
 def print_policy(policy, action_names):
