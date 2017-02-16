@@ -49,43 +49,12 @@ def draw_str_policy_console(str_policy, map_size=0):
 
 def draw_value_func_heatmap(value_func, map_size=0):
     v = value_func.reshape(map_size, map_size)
-    plt.imshow(v, cmap='hot', interpolation='nearest')
+    # plt.imshow(v, cmap='hot', interpolation='nearest')
+    plt.imshow(v, cmap='jet', interpolation='nearest')
     plt.colorbar()
     plt.xticks(range(map_size))
     plt.yticks(range(map_size))
     plt.show()
-
-
-# def convert_values_to_policy_deterministic(env, optimal_values, map_size):
-#     """policy is an ndarray"""
-#     optimal_policy = ['L'] * len(optimal_values)
-#     optimal_values = optimal_values.reshape(map_size, map_size)
-#
-#     # wrap optimal_values with zeros padding for all 4 sides
-#     x = np.zeros((1, map_size))
-#     y = np.zeros((map_size + 2, 1))
-#     optimal_values = np.append(optimal_values, x, axis=0)
-#     optimal_values = np.append(x, optimal_values, axis=0)
-#     optimal_values = np.append(y, optimal_values, axis=1)
-#     optimal_values = np.append(optimal_values, y, axis=1)
-#
-#     # now scan each original element and compare with its 4 neighbors: up, down, left, right
-#     new_size = len(optimal_values)
-#     for i in range(1, new_size-1):
-#         for j in range(1, new_size-1):
-#             if optimal_values[i, j] == 0:
-#                 continue
-#             if optimal_values[i, j] == 1:
-#                 optimal_policy[(i - 1) * map_size + (j - 1)] = 'R'  # TODO: validate this
-#             if optimal_values[i, j] <= optimal_values[i, j+1]:
-#                 optimal_policy[(i-1) * map_size + (j-1)] = 'R'
-#             if optimal_values[i, j] <= optimal_values[i + 1, j]:
-#                 optimal_policy[(i - 1) * map_size + (j - 1)] = 'D'
-#             if optimal_values[i, j] <= optimal_values[i - 1, j]:
-#                 optimal_policy[(i - 1) * map_size + (j - 1)] = 'U'
-#
-#     return optimal_policy
-
 
 
 def convert_values_to_optimal_policy(env, value_function):
@@ -149,7 +118,7 @@ def question_2_a():
 
         # a
         t1 = time.time()
-        policy, value_func, impru_count, eval_count = rl.policy_iteration(env=env, gamma=0.9)
+        policy, value_func1, impru_count, eval_count = rl.policy_iteration(env=env, gamma=0.9)
         print policy
         print("\n\n\na. Time taken for POLICY iteration for question 2.a is {} seconds".format(time.time() - t1))
         print("a. Policy improvement takes {} steps, policy evaluation takes {} steps".format(impru_count, eval_count))
@@ -159,26 +128,28 @@ def question_2_a():
         draw_policy_console(policy, action_names, map_size)
 
         # c
-        print("\nc. Value function for POLICY iteration = {}".format(value_func))
-        draw_value_func_heatmap(value_func, map_size)
+        print("\nc. Value function for POLICY iteration = {}".format(value_func1))
+        draw_value_func_heatmap(value_func1, map_size)
 
         # d
         t2 = time.time()
-        optimal_policy, value_func, count = rl.value_iteration(env, gamma=0.9)
+        optimal_policy, value_func2, count = rl.value_iteration(env, gamma=0.9)
         print("\n\n\nd. Time taken for VALUE iteration for question 2.a is {} seconds".format(time.time() - t2))
         print("d. Total iterations is {}".format(count))
         print("\n\nOptimal policy for VALUE iteration is: ")
         draw_policy_console(optimal_policy, action_names, map_size)
 
         # e
-        print("\ne. Value function for VALUE iteration = {}".format(value_func))
-        draw_value_func_heatmap(value_func, map_size)
+        print("\ne. Value function for VALUE iteration = {}".format(value_func2))
+        draw_value_func_heatmap(value_func2, map_size)
 
         # f
         # optimal_policy_str = convert_values_to_policy_deterministic(env, optimal_values=value_func, map_size=map_size)
-        optimal_policy_converted = convert_values_to_optimal_policy(env, value_func)
+        # optimal_policy_converted = convert_values_to_optimal_policy(env, value_func)
+        optimal_policy_converted = rl.value_function_to_policy(env, gamma=1, value_function=value_func2)
         print("\nf. Convert optimal values to optimal policy")
         draw_policy_console(optimal_policy_converted, action_names, map_size)
+        print(optimal_policy_converted == optimal_policy)
 
         # g
         total_reward, num_steps = execute_optimal_policy(env, optimal_policy)
@@ -208,7 +179,7 @@ def question_2_b():
         optimal_policy_converted = convert_values_to_optimal_policy(env, value_func)
         print("\nf. Convert optimal values to optimal policy")
         draw_policy_console(optimal_policy_converted, action_names, map_size)
-
+        print(optimal_policy_converted == optimal_policy)
         # e
         total_reward = 0.
         iters = 100
@@ -244,9 +215,9 @@ def question_2_c():
 
 
 def main():
-    question_2_a()
+    # question_2_a()
     # question_2_b()
-    # question_2_c()
+    question_2_c()
 
 
 if __name__ == '__main__':

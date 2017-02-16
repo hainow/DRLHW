@@ -13,19 +13,10 @@ from gym.envs.registration import register
 from six import StringIO, b
 from gym import utils  # for coloring
 
-def categorical_sample(prob_n):  # taken from discrete.py
-    """
-    Sample from categorical distribution
-    Each row specifies class probabilities
-    """
-    prob_n = np.asarray(prob_n)
-    csprob_n = np.cumsum(prob_n)
-    return (csprob_n > np.random.rand()).argmax()
-
 
 class QueueEnv(Env):
     """Implement the Queue environment from problem 3.
-
+    RUN QUESTION3.py TO TEST
     Parameters
     ----------
     p1: float
@@ -49,13 +40,15 @@ class QueueEnv(Env):
     SWITCH_TO_3 = 2
     SERVICE_QUEUE = 3
 
-
     def __init__(self, p1, p2, p3):
 
         def build_increment(p1, p2, p3):
             """
             For each action, we have 8 possible next states, with increment of items
-            (0, 0, 0), (0, 0, 1), ... , (1, 1, 1) with probablility (1-p1)(1-p2)(1-p3), (1-p1)(1-p2)p3, ...., p1*p2*p3
+            (0, 0, 0), (0, 0, 1), ... , (1, 1, 1)
+                with probablilities of:
+            (1-p1)(1-p2)(1-p3), (1-p1)(1-p2)p3, ...., p1*p2*p3
+
             :return: a dictionary mapping the 2 lists above
             """
             l = [(a, b, c) for a in range(2) for b in range(2) for c in range(2)]
@@ -70,23 +63,21 @@ class QueueEnv(Env):
             return x
 
         def upper_bound(array, upper=5):
-            array[array>5] = 5
+            """ bound an array if any element exceed 5"""
+            array[array > 5] = 5
             return array
-
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.MultiDiscrete([(1, 3), (0, 5), (0, 5), (0, 5)])
         self.nS = 3 * 6 * 6 * 6
         self.nA = 4
+        self.reward = 0  # for rendering
         self.last_action = None  # for rendering
-        isd = np.array([1] + [0] * (self.nS-1)) #TODO: ask about whether we need to sample how many items pre-existed?
+        # isd = np.array([1] + [0] * (self.nS-1)) #TODO: ask about whether we need to sample how many items pre-existed?
 
-
-
-        # self.P = dict
         self.states = [(a, b, c, d) for a in range(3) for b in range(6) for c in range(6) for d in range(6)]
         self.P = {s: {a: [] for a in range(self.nA)} for s in self.states}
-        increments = build_increment(p1, p2, p3)
+        increments = build_increment(p1, p2, p3)  # { (p1, p2, p3) : prob} of these 3 i.i.d events co-occur
 
         for a in range(3):
             for b in range(6):
@@ -95,34 +86,27 @@ class QueueEnv(Env):
                         current_state = (a, b, c, d)
                         for action in range(4):
                             li = self.P[current_state][action]  # currently empty
-                            interim_state = None
-                            if action <3:
+                            interim_state = None  # cache in memory
+                            if action < 3:
                                 interim_state = np.asarray((action, b, c, d))
-                                # serve now ...
-                                interim_state[action + 1] -= 1
-
-                                # get reward
+                                # no reward is given if action = 0, 1, 2
                                 reward = 0
-                                if interim_state[action + 1] < 0:
-                                    interim_state[action + 1] = 0
-                                else:
-                                    reward = 1
 
                                 # update env.P[s][a]
                                 for key in increments:
-                                    next_state = upper_bound(interim_state + np.array((0,) + key))
+                                    next_state = upper_bound(interim_state + np.array((0,) + key))  # upper bound if >5
                                     prob = increments[key]
-                                    li.append( (prob,) + (tuple(next_state), ) + (reward, False) )
+                                    li.append((prob,) + (tuple(next_state),) + (reward, False))
 
                             else:  # action == 3: stay and serve current queue
                                 interim_state = np.asarray((a, b, c, d))  # a unchanged
                                 # serve now ...
                                 interim_state[a + 1] -= 1
 
-                                # get reward
+                                # get reward (only in this action, the possible reward can become +1)
                                 reward = 0
                                 if interim_state[a + 1] < 0:
-                                    interim_state[a + 1] = 0
+                                    interim_state[a + 1] = 0  # lower=bound if an element is -1, reward = 0
                                 else:
                                     reward = 1
 
@@ -130,17 +114,18 @@ class QueueEnv(Env):
                                 for key in increments:
                                     next_state = upper_bound(interim_state + np.array((0,) + key))
                                     prob = increments[key]
-                                    li.append( (prob,) + (tuple(next_state), ) + (reward, False) )
+                                    li.append((prob,) + (tuple(next_state),) + (reward, False))
 
         # TODO: validate whether this is needed
-        self._seed()
+        # self._seed()
         self._reset()
-
 
     def _reset(self):
         """Reset the environment.
 
         The server should always start on Queue 1.
+
+        RUN QUESTION3.py TO TEST
 
         Returns
         -------
@@ -149,6 +134,9 @@ class QueueEnv(Env):
           (current queue, num items in 1, num items in 2, num items in
           3).
         """
+        self.reward = 0
+
+        # TODO: ask TA for this initialization
         import random
         b = random.randint(0, 5)
         c = random.randint(0, 5)
@@ -159,6 +147,8 @@ class QueueEnv(Env):
 
     def _step(self, action):
         """Execute the specified action.
+
+        RUN QUESTION3.py TO TEST
 
         Parameters
         ----------
@@ -174,23 +164,40 @@ class QueueEnv(Env):
           state. debug_info is a dictionary. You can fill debug_info
           with any additional information you deem useful.
         """
-        transitions = self.P[self.s][action]
-        i = categorical_sample([t[0] for t in transitions])
-        p, next_state, r, d = transitions[i]
-        debug = 'none'
 
+        def categorical_sample(prob_n):
+            """
+            *** taken from discrete.py (class Discrete(Env) in gym) ***
+            Sample from categorical distribution
+            Each row specifies class probabilities
+            """
+            prob_n = np.asarray(prob_n)
+            csprob_n = np.cumsum(prob_n)
+            return (csprob_n > np.random.rand()).argmax()
+
+        transitions = self.P[self.s][action]
+        # there is other way of categorically sampling but we employ already-implemented code
+        # other candidate solution is:
+        #   numpy.random.choice(a, size=None, replace=True, p=None) where p is the distribution
+        i = categorical_sample([t[0] for t in transitions])
+
+        p, next_state, r, d = transitions[i]
+        debug = str(p)
         # update object attributes
+        self.reward += r
         self.last_action = action
         self.s = next_state
 
         return (self.s, r, d, debug)
 
     def _render(self, mode='human', close=False):
-
+        """
+        RUN QUESTION3.py TO TEST
+        """
         if close:
             return
 
-        # decorate now
+        # decorate now for action
         s = np.array(self.s, dtype='c').tolist()
         if self.last_action is not None:
             if self.last_action < 3:
@@ -200,30 +207,31 @@ class QueueEnv(Env):
         else:
             s[1] = utils.colorize(s[1], "red", highlight=True)
 
-        (a, b, c, d) = s
         # now output to console
+        (a, b, c, d) = s
         outfile = StringIO() if mode == 'ansi' else sys.stdout
 
         if self.last_action is not None:
             outfile.write("\n\t\t\t   ACTION:  {} -->\n".
-                          format(utils.colorize(["To Q1","To Q2","To Q3","Stay"][self.last_action],
+                          format(utils.colorize(["To Q1", "To Q2", "To Q3", "SERVICE"][self.last_action],
                                                 "green", highlight=False)))
         else:
             outfile.write("\n")
-
+        outfile.write("\t\t\t\tCurrent REWARD: {}\n".format(self.reward))
         outfile.write('\t\t----------------------------\n')
         outfile.write('\t\t[now]\t[Q1]\t[Q2]\t[Q3]\n')
         outfile.write('\t\t----------------------------\n')
-        outfile.write('\t\t  {}\t {}\t {}\t {}\n'.format(a, b, c, d))
+        outfile.write('\t\t  {}\t {}\t {}\t {}\n'.format(int(a) + 1, b, c, d))
 
         outfile.write('\n\n')
 
+        # RUN question3.py to TEST
         return outfile
-
-
 
     def _seed(self, seed=None):
         """Set the random seed.
+
+        RUN QUESTION3.py TO TEST
 
         Parameters
         ----------
@@ -254,6 +262,7 @@ class QueueEnv(Env):
         return self.P[state][action]
 
     def get_action_name(self, action):
+
         if action == QueueEnv.SERVICE_QUEUE:
             return 'SERVICE_QUEUE'
         elif action == QueueEnv.SWITCH_TO_1:

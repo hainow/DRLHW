@@ -16,13 +16,13 @@
 import gym
 import HW1.question2 as q2
 #
-# # env = gym.make('Stochastic-4x4-FrozenLake-v0')
-env = gym.make('Deterministic-4x4-FrozenLake-v0')
+env = gym.make('Stochastic-4x4-FrozenLake-v0')
+# env = gym.make('Deterministic-4x4-FrozenLake-v0')
 # print env.isd
 q2.print_transition(env)
-transitions = env.P[0][1]
-s = [t[0] for t in transitions]
-print s
+# transitions = env.P[0][1]
+# s = [t[0] for t in transitions]
+# print s
 
 # env.render()
 

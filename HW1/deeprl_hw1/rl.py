@@ -16,6 +16,8 @@ def evaluate_policy(env, gamma, policy, max_iterations=int(1e3), tol=1e-3):
 
     http://webdocs.cs.ualberta.ca/~sutton/book/bookdraft2016sep.pdf
 
+    RUN QUESTION2.py TO TEST
+
     Parameters
     ----------
     env: gym.core.Environment
@@ -44,20 +46,14 @@ def evaluate_policy(env, gamma, policy, max_iterations=int(1e3), tol=1e-3):
         value_func_new = np.zeros(env.nS)
         for s in range(env.nS):
             # print("\n\tAT state {}".format(s))
-            # base case: check whether s is a terminal state
-            # if s in terminals:
-            #     continue
-
             a = policy[s]  # in this configuration, policy is always deterministic
             for p, s_next, r, done in env.P[s][a]:
                 # print("\t\tfor action {} p={} s_next={} r={} done={}".format(a, p, s_next, r, done))
                 value_func_new[s] += p * (r + gamma * value_func[s_next])
-                # v_new += p * (r + gamma * V[s_next])
                 # print("\t\told value = {} new value = {}".format(V[s], V_new[s]))
 
             delta = max(delta, np.abs(value_func[s] - value_func_new[s]))
-            # delta = max(delta, np.abs(V[s] - v_new))
-            # V[s] = v_new
+
         if (delta < tol) or (count > max_iterations):
             break
 
@@ -75,6 +71,8 @@ def evaluate_policy_inplace(env, gamma, policy, max_iterations=int(1e3), tol=1e-
     book.
 
     http://webdocs.cs.ualberta.ca/~sutton/book/bookdraft2016sep.pdf
+
+    RUN QUESTION2.py TO TEST
 
     Parameters
     ----------
@@ -121,22 +119,10 @@ def evaluate_policy_inplace(env, gamma, policy, max_iterations=int(1e3), tol=1e-
 
     return value_func, count #TODO: ask TA whether "count" here is ok?
 
-# def find_terminal_states(env):
-#     """ find a set of terminal states of an env"""
-#     terminals = []
-#     for s in range(env.nS):
-#         # base case: check whether s is a terminal state
-#         is_terminal = True
-#         for a in env.P[s]:  # {0: [(1.0, 0, 0.0, False)], 1: [(1.0, 4, 0.0, False)], 2: [(1.0, 1, 0.0, False)], 3: [(1.0, 0, 0.0, False)]}
-#             next = env.P[s][a][0]
-#             is_terminal *= next[3]
-#         if is_terminal == True:
-#             terminals.append(s)
-#
-#     return terminals
-
 def value_function_to_policy(env, gamma, value_function):
     """Output action numbers for each state in value_function.
+
+    RUN QUESTION2.py TO TEST
 
     Parameters
     ----------
@@ -160,23 +146,28 @@ def value_function_to_policy(env, gamma, value_function):
     optimal_policy = np.zeros(nS, dtype='int')  # optimal w.r.t this value_function given the 'env' only
 
     for s in range(nS):
-        max_reward = -1
+        max_reward = -np.inf
+        # optimal_action = -1
         Ps = P[s]
         # scan through all possible actions provided by environment
         # and pick the one which yields the best cummulative reward
         for a in Ps:
+        # for a in range(env.nA):
             expected_value = 0.
             for p, s_next, r, done in Ps[a]:
                 expected_value += p * (r + gamma * value_function[s_next])
             if max_reward < expected_value:
                 max_reward = expected_value
                 optimal_policy[s] = a
-
+                # optimal_action = a
+        # optimal_policy[s] = optimal_action
     return optimal_policy
 
 
 def improve_policy(env, gamma, value_func, policy):
     """Given a policy and value function improve the policy.
+
+    RUN QUESTION2.py TO TEST
 
     See page 87 (pg 105 pdf) of the Sutton and Barto Second Edition
     book.
@@ -214,6 +205,8 @@ def improve_policy(env, gamma, value_func, policy):
 
 def policy_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
     """Runs policy iteration.
+
+    RUN QUESTION2.py TO TEST
 
     See page 87 (pg 105 pdf) of the Sutton and Barto Second Edition
     book.
@@ -267,6 +260,8 @@ def policy_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
 
 def value_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
     """Runs value iteration for a given gamma and environment.
+
+    RUN QUESTION2.py TO TEST
 
     See page 90 (pg 108 pdf) of the Sutton and Barto Second Edition
     book.
