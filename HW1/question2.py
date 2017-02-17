@@ -146,7 +146,7 @@ def question_2_a():
         # f
         # optimal_policy_str = convert_values_to_policy_deterministic(env, optimal_values=value_func, map_size=map_size)
         # optimal_policy_converted = convert_values_to_optimal_policy(env, value_func)
-        optimal_policy_converted = rl.value_function_to_policy(env, gamma=1, value_function=value_func2)
+        optimal_policy_converted = rl.value_function_to_policy(env, gamma=0.9, value_function=value_func2)
         print("\nf. Convert optimal values to optimal policy")
         draw_policy_console(optimal_policy_converted, action_names, map_size)
         print(optimal_policy_converted == optimal_policy)
