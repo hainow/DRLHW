@@ -215,9 +215,9 @@ def question_2_c():
 
 
 def main():
-    # question_2_a()
+    question_2_a()
     # question_2_b()
-    question_2_c()
+    # question_2_c()
 
 
 if __name__ == '__main__':

@@ -99,11 +99,6 @@ def evaluate_policy_inplace(env, gamma, policy, max_iterations=int(1e3), tol=1e-
         # print("\t\tAt loop {} value of V[s]={}".format(count, V))
         delta = 0.
         for s in range(env.nS):
-            # print("\n\tAT state {}".format(s))
-            # base case: check whether s is a terminal state
-            # if s in terminals:
-            #     continue
-
             v_new = 0.
             a = policy[s]  # in this configuration, policy is always deterministic
             for p, s_next, r, done in env.P[s][a]:
@@ -147,20 +142,18 @@ def value_function_to_policy(env, gamma, value_function):
 
     for s in range(nS):
         max_reward = -np.inf
-        # optimal_action = -1
         Ps = P[s]
         # scan through all possible actions provided by environment
         # and pick the one which yields the best cummulative reward
         for a in Ps:
-        # for a in range(env.nA):
             expected_value = 0.
             for p, s_next, r, done in Ps[a]:
                 expected_value += p * (r + gamma * value_function[s_next])
+
             if max_reward < expected_value:
                 max_reward = expected_value
                 optimal_policy[s] = a
-                # optimal_action = a
-        # optimal_policy[s] = optimal_action
+
     return optimal_policy
 
 
@@ -242,7 +235,7 @@ def policy_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
         print("POLICY ITERATION - Loop no. {}".format(impru_count))
         # step 1: Evaluate Policy
         # value_func, c = evaluate_policy(env, gamma, policy, max_iterations, tol)
-        value_func, c = evaluate_policy_inplace(env, gamma, policy, max_iterations, tol)
+        value_func, c = evaluate_policy_inplace(env, gamma, policy, max_iterations, tol) # in-place is preferred (DP)
         eval_count += c
         print("\t\tNew V[s]={}".format(value_func))
 
@@ -314,40 +307,40 @@ def value_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
     return optimal_policy, value_func, count
 
 
-def print_policy(policy, action_names):
-    """Print the policy in human-readable format.
-
-    Parameters
-    ----------
-    policy: np.ndarray
-      Array of state to action number mappings
-    action_names: dict
-      Mapping of action numbers to characters representing the action.
-    """
-    str_policy = policy.astype('str')
-    for action_num, action_name in action_names.items():
-        np.place(str_policy, policy == action_num, action_name)
-
-    print(str_policy)
-
-
-def draw_policy(policy, action_names, map_size=0):
-    str_policy = policy.astype('str')
-    for action_num, action_name in action_names.items():
-        np.place(str_policy, policy == action_num, action_name)
-
-    print('\n\n')
-    for i in range( len(str_policy) / map_size ):
-        s = ''
-        for j in range(map_size):
-            s += str_policy[i * map_size + j]
-        print('\t\t{}'.format(s))
-
-def draw_value_func(value_func, map_size):
-    v = value_func.reshape(map_size, map_size)
-    plt.close()
-    plt.imshow(v, cmap='hot', interpolation='nearest')
-    plt.colorbar()
-    plt.xticks(range(map_size))
-    plt.yticks(range(map_size))
-    plt.show()
+# def print_policy(policy, action_names):
+#     """Print the policy in human-readable format.
+#
+#     Parameters
+#     ----------
+#     policy: np.ndarray
+#       Array of state to action number mappings
+#     action_names: dict
+#       Mapping of action numbers to characters representing the action.
+#     """
+#     str_policy = policy.astype('str')
+#     for action_num, action_name in action_names.items():
+#         np.place(str_policy, policy == action_num, action_name)
+#
+#     print(str_policy)
+#
+#
+# def draw_policy(policy, action_names, map_size=0):
+#     str_policy = policy.astype('str')
+#     for action_num, action_name in action_names.items():
+#         np.place(str_policy, policy == action_num, action_name)
+#
+#     print('\n\n')
+#     for i in range( len(str_policy) / map_size ):
+#         s = ''
+#         for j in range(map_size):
+#             s += str_policy[i * map_size + j]
+#         print('\t\t{}'.format(s))
+#
+# def draw_value_func(value_func, map_size):
+#     v = value_func.reshape(map_size, map_size)
+#     plt.close()
+#     plt.imshow(v, cmap='hot', interpolation='nearest')
+#     plt.colorbar()
+#     plt.xticks(range(map_size))
+#     plt.yticks(range(map_size))
+#     plt.show()

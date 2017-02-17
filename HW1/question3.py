@@ -307,14 +307,17 @@ def queue_value_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
 def main():
     ''' TEST DRIVER FOR Q3'''
 
-    env = gym.make('Queue-1-v0')
+    # env = gym.make('Queue-1-v0')
+    env = gym.make('Queue-2-v0')
     print_transition(env)
 
-    # Run a random policy for 10 steps
-    iters = 10
+    # TEST 1. Run a random policy for 10 steps
+    iters = 20
     total_reward = run_random_policy(env, max_steps=iters)
     print("Total reward = {} after {} iters, average = {}".format(total_reward, iters, total_reward / float(iters)))
 
+
+    # TEST 2. POLICY EVAL
     # t1 = time.time()
     # policy = {}
     # for s in env.states:
@@ -322,6 +325,8 @@ def main():
     # value_func, eval_count = queue_evaluate_policy_inplace(env=env, gamma=.9, policy=policy)
     # print value_func, eval_count
 
+
+    # TEST 3. POLICY ITERATION
     # WARNING: very long since there are many states
     # t1 = time.time()
     # policy, value_func, impru_count, eval_count = queue_policy_iteration(env=env, gamma=0.9, verbose=False)
@@ -329,6 +334,8 @@ def main():
     # print("\n\n\na. Time taken for POLICY iteration for question 2.a is {} seconds".format(time.time() - t1))
     # print("a. Policy improvement takes {} steps, policy evaluation takes {} steps".format(impru_count, eval_count))
 
+
+    # TEST 4. VALUE ITERATION
     # MUCH FASTER THAN POLICY ITERATION
     # t2 = time.time()
     # optimal_policy, value_func, count = queue_value_iteration(env, gamma=0.9)
@@ -336,6 +343,14 @@ def main():
     # print("Total iterations is {}".format(count))
     # print("\n\nOptimal policy for VALUE iteration is: {}".format(optimal_policy))
     # print("\n\nOptimal VALUES for each action is {}".format(value_func))
+
+
+    # TEST 5. QUERY MODEL
+    # states = [(a, b, c, d) for a in range(3) for b in range(6) for c in range(6) for d in range(6)]
+    # for s in states:
+    #     for a in range(4):
+    #         print(env.query_model(s, a))
+
 
 if __name__ == "__main__":
     main()

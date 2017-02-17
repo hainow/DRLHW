@@ -77,7 +77,7 @@ class QueueEnv(Env):
 
         self.states = [(a, b, c, d) for a in range(3) for b in range(6) for c in range(6) for d in range(6)]
         self.P = {s: {a: [] for a in range(self.nA)} for s in self.states}
-        increments = build_increment(p1, p2, p3)  # { (p1, p2, p3) : prob} of these 3 i.i.d events co-occur
+        increments = build_increment(p1, p2, p3)  # { (p1, p2, p3) : prob } of these 3 i.i.d events co-occur
 
         for a in range(3):
             for b in range(6):
@@ -212,12 +212,12 @@ class QueueEnv(Env):
         outfile = StringIO() if mode == 'ansi' else sys.stdout
 
         if self.last_action is not None:
-            outfile.write("\n\t\t\t   ACTION:  {} -->\n".
+            outfile.write("\n\t\t\t ACTION:  {} -->\n".
                           format(utils.colorize(["To Q1", "To Q2", "To Q3", "SERVICE"][self.last_action],
                                                 "green", highlight=False)))
         else:
             outfile.write("\n")
-        outfile.write("\t\t\t\tCurrent REWARD: {}\n".format(self.reward))
+        outfile.write("\t\t\t  Current REWARD: {}\n".format(self.reward))
         outfile.write('\t\t----------------------------\n')
         outfile.write('\t\t[now]\t[Q1]\t[Q2]\t[Q3]\n')
         outfile.write('\t\t----------------------------\n')
