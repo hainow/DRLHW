@@ -78,28 +78,6 @@ def convert_values_to_optimal_policy(env, value_function):
     return optimal_policy
 
 
-def execute_optimal_policy(env, policy, verbose=False):
-    total_reward = 0.
-    num_steps = 0
-    # print(policy)
-    current_state = env.reset()
-    # env.render()
-    while True:
-        # env.render()
-        next_state, reward, is_terminal, debug_info = env.step(policy[current_state])
-        if verbose:
-            print("Start {} action {} -> next state {}".format(current_state, policy[current_state], next_state))
-        # env.render()
-        total_reward += reward
-        num_steps += 1
-
-        if is_terminal:
-            break
-
-        current_state = next_state
-
-    return total_reward, num_steps
-
 def execute_optimal_policy_cummulative(env, policy, gamma=.9, verbose=False):
     total_reward = 0.
     num_steps = 0
@@ -111,12 +89,9 @@ def execute_optimal_policy_cummulative(env, policy, gamma=.9, verbose=False):
             print("Start {} action {} -> next state {}".format(current_state, policy[current_state], next_state))
         total_reward += exp * reward
         num_steps += 1
-        if reward>0:
-            print(num_steps,reward,exp)
         if is_terminal:
             break
         exp = gamma * exp
-        print(exp)
         current_state = next_state
 
     return total_reward, num_steps
@@ -165,15 +140,12 @@ def question_2_a():
         draw_value_func_heatmap(value_func2, map_size)
 
         # f
-        # optimal_policy_str = convert_values_to_policy_deterministic(env, optimal_values=value_func, map_size=map_size)
-        # optimal_policy_converted = convert_values_to_optimal_policy(env, value_func)
         optimal_policy_converted = rl.value_function_to_policy(env, gamma=0.9, value_function=value_func2)
         print("\nf. Convert optimal values to optimal policy")
         draw_policy_console(optimal_policy_converted, action_names, map_size)
         print(optimal_policy_converted == optimal_policy)
 
         # g
-        # total_reward, num_steps = execute_optimal_policy(env, optimal_policy)
         total_reward, num_steps = execute_optimal_policy_cummulative(env, optimal_policy)
         print("g. Total CUMMULATIVE DISCOUNTED reward = {}, total steps = {}".format(total_reward, num_steps))
         print("==============================================================================================\n\n\n")
@@ -204,14 +176,12 @@ def question_2_b():
         print(optimal_policy_converted == optimal_policy)
         # e
         total_reward = 0.
-        iters = 1000
+        iters = 100
         for _ in range(iters):
-            # reward, num_steps = execute_optimal_policy(env, optimal_policy, False)
             reward, num_steps = execute_optimal_policy_cummulative(env, optimal_policy, gamma=.9)
             total_reward += reward
         print("g. Total reward = {}, average CUMMULATIVE DISCOUNTED reward after {} iters = {}".
               format(total_reward, iters, total_reward / iters))
-        print(total_reward)
 
         print("==============================================================================================\n\n\n")
 
@@ -240,8 +210,8 @@ def question_2_c():
 
 
 def main():
-    # question_2_a()
-    # question_2_b()
+    question_2_a()
+    question_2_b()
     question_2_c()
 
 
