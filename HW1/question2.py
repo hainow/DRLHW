@@ -104,16 +104,19 @@ def execute_optimal_policy_cummulative(env, policy, gamma=.9, verbose=False):
     total_reward = 0.
     num_steps = 0
     current_state = env.reset()
+    exp=1
     while True:
         next_state, reward, is_terminal, debug_info = env.step(policy[current_state])
         if verbose:
             print("Start {} action {} -> next state {}".format(current_state, policy[current_state], next_state))
-        total_reward += (gamma ** num_steps) * reward
+        total_reward += exp * reward
         num_steps += 1
-
+        if reward>0:
+            print(num_steps,reward,exp)
         if is_terminal:
             break
-
+        exp = gamma * exp
+        print(exp)
         current_state = next_state
 
     return total_reward, num_steps
@@ -201,13 +204,14 @@ def question_2_b():
         print(optimal_policy_converted == optimal_policy)
         # e
         total_reward = 0.
-        iters = 100
+        iters = 1000
         for _ in range(iters):
-            reward, num_steps = execute_optimal_policy(env, optimal_policy, False)
-            # reward, num_steps = execute_optimal_policy_cummulative(env, optimal_policy, False)
+            # reward, num_steps = execute_optimal_policy(env, optimal_policy, False)
+            reward, num_steps = execute_optimal_policy_cummulative(env, optimal_policy, gamma=.9)
             total_reward += reward
         print("g. Total reward = {}, average CUMMULATIVE DISCOUNTED reward after {} iters = {}".
               format(total_reward, iters, total_reward / iters))
+        print(total_reward)
 
         print("==============================================================================================\n\n\n")
 
@@ -237,8 +241,8 @@ def question_2_c():
 
 def main():
     # question_2_a()
-    question_2_b()
-    # question_2_c()
+    # question_2_b()
+    question_2_c()
 
 
 if __name__ == '__main__':

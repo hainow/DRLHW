@@ -49,7 +49,7 @@ def evaluate_policy(env, gamma, policy, max_iterations=int(1e3), tol=1e-3):
             a = policy[s]  # in this configuration, policy is always deterministic
             for p, s_next, r, done in env.P[s][a]:
                 # print("\t\tfor action {} p={} s_next={} r={} done={}".format(a, p, s_next, r, done))
-                value_func_new[s] += p * (r + gamma * value_func[s_next])
+                value_func_new[s] += p * (r + gamma * (value_func[s_next] if not done else 0))
                 # print("\t\told value = {} new value = {}".format(V[s], V_new[s]))
 
             delta = max(delta, np.abs(value_func[s] - value_func_new[s]))
@@ -102,7 +102,7 @@ def evaluate_policy_inplace(env, gamma, policy, max_iterations=int(1e3), tol=1e-
             v_new = 0.
             a = policy[s]  # in this configuration, policy is always deterministic
             for p, s_next, r, done in env.P[s][a]:
-                v_new += p * (r + gamma * value_func[s_next])
+                v_new += p * (r + gamma * (value_func[s_next] if not done else 0))
 
             delta = max(delta, np.abs(value_func[s] - v_new))
             value_func[s] = v_new
@@ -148,7 +148,7 @@ def value_function_to_policy(env, gamma, value_function):
         for a in Ps:
             expected_value = 0.
             for p, s_next, r, done in Ps[a]:
-                expected_value += p * (r + gamma * value_function[s_next])
+                expected_value += p * (r + gamma * (value_function[s_next] if not done else 0))
 
             if max_reward < expected_value:
                 max_reward = expected_value
@@ -286,18 +286,19 @@ def value_iteration(env, gamma, max_iterations=int(1e3), tol=1e-3):
         # V_new = np.zeros(env.nS)
         for s in range(env.nS):
             v_new = value_func[s]
-            max_return = -1.
+            max_return = -np.inf
             for a in env.P[s]:
                 expected_value = 0.
                 for p, s_next, r, done in env.P[s][a]:
-                    expected_value += p * (r + gamma * value_func[s_next])
+                    expected_value += p * (r + gamma * (value_func[s_next] if not done else 0))
+                
                 if max_return < expected_value:
                     max_return = expected_value
                     optimal_policy[s] = a
 
             # update best value
             value_func[s] = max_return
-            delta = max(delta, np.abs(value_func[s] - v_new))
+            delta = max(delta, abs(value_func[s] - v_new))
 
         if (delta < tol) or (count > max_iterations):
             break
